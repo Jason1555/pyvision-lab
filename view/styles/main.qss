@@ -1,0 +1,123 @@
+QMainWindow {
+    background-color: #15171a;
+}
+
+QWidget {
+    color: #e6e9ef;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+QLabel#imageLabel {
+    background-color: #1d2025;
+    border: 1px solid #2b3038;
+    border-radius: 12px;
+    color: #8f96a3;
+}
+
+QPushButton#openButton {
+    background-color: #3478f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    min-height: 20px;
+    font-weight: 600;
+}
+
+QPushButton#openButton:hover {
+    background-color: #4285f8;
+}
+
+QPushButton#openButton:pressed {
+    background-color: #2865d0;
+}
+
+QPushButton#openButton:disabled {
+    background-color: #30343b;
+    color: #777e8a;
+}
+
+QMainWindow {
+    background-color: #15171a;
+}
+
+QWidget {
+    color: #e6e9ef;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+QGraphicsView#imageCanvas {
+    background-color: #101216;
+    border: 1px solid #2b3038;
+    border-radius: 12px;
+}
+
+QPushButton#openButton {
+    background-color: #3478f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    min-height: 20px;
+    font-weight: 600;
+}
+
+QPushButton#openButton:hover {
+    background-color: #4285f8;
+}
+
+QPushButton#openButton:pressed {
+    background-color: #2865d0;
+}
+
+QScrollBar:vertical {
+    background: #16191d;
+    width: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #3a404a;
+    min-height: 30px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #4a5260;
+}
+
+QScrollBar:horizontal {
+    background: #16191d;
+    height: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: #3a404a;
+    min-width: 30px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #4a5260;
+}
+
+QPushButton#zoomLabel {
+    background: transparent;
+    color: #b8bec9;
+    border: none;
+    min-width: 52px;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+QPushButton#zoomLabel:hover {
+    background: #292e36;
+    color: #ffffff;
+}
+
+QPushButton#zoomLabel:pressed {
+    background: #343a44;
+}
