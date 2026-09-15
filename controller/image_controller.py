@@ -16,6 +16,8 @@ class ImageController(QObject):
         self.view.open_button.clicked.connect(self.open_image)
         self.view.tool_panel.grayscale_tool.grayscale_clicked.connect(self.convert_to_grayscale)
         self.view.tool_panel.brightness_tool.brightness_changed.connect(self.adjust_brightness)
+        self.view.tool_panel.contrast_tool.contrast_changed.connect(self.adjust_contrast)
+        self.view.tool_panel.saturation_tool.saturation_changed.connect(self.adjust_saturation)
 
     def open_image(self):
         file_path = self.view.ask_open_file()
@@ -24,6 +26,8 @@ class ImageController(QObject):
 
         try:
             image = self.model.load_image(file_path)
+
+            self.view.tool_panel.reset()
 
             file_size = self.model.get_file_size()
             resolution = self.model.get_resolution()
@@ -68,18 +72,27 @@ class ImageController(QObject):
         except Exception as error:
             self.view.show_error(f"Failed to open image:\n\n{error}")
 
-    def convert_to_grayscale(self):
+    def convert_to_grayscale(self, enabled: bool):
         try:
-            self.model.set_grayscale(True)
-            
+            self.model.set_grayscale(enabled)
+
             image = self.model.process_image()
+
             qimage = self.pil_to_qimage(image)
             pixmap = QPixmap.fromImage(qimage)
+
             original_size = self.model.get_resolution()
-            
-            self.view.show_image(pixmap, preserve_zoom=True, original_size=original_size)
+
+            self.view.show_image(
+                pixmap,
+                preserve_zoom=True,
+                original_size=original_size,
+            )
+
         except Exception as error:
-            self.view.show_error(f"Failed to convert image to grayscale:\n\n{error}")
+            self.view.show_error(
+                f"Failed to convert image to grayscale:\n\n{error}"
+            )
 
     def adjust_brightness(self, value: int):
         try:
@@ -94,6 +107,51 @@ class ImageController(QObject):
 
         except Exception as error:
             self.view.show_error(f"Failed to adjust brightness:\n\n{error}")
+
+    def adjust_contrast(self, value: int):
+        try:
+            self.model.set_contrast(value)
+
+            image = self.model.process_image()
+
+            qimage = self.pil_to_qimage(image)
+            pixmap = QPixmap.fromImage(qimage)
+
+            original_size = self.model.get_resolution()
+
+            self.view.show_image(
+                pixmap,
+                preserve_zoom=True,
+                original_size=original_size,
+            )
+
+        except Exception as error:
+            self.view.show_error(
+                f"Failed to adjust contrast:\n\n{error}"
+            )
+
+
+    def adjust_saturation(self, value: int):
+        try:
+            self.model.set_saturation(value)
+
+            image = self.model.process_image()
+
+            qimage = self.pil_to_qimage(image)
+            pixmap = QPixmap.fromImage(qimage)
+
+            original_size = self.model.get_resolution()
+
+            self.view.show_image(
+                pixmap,
+                preserve_zoom=True,
+                original_size=original_size,
+            )
+
+        except Exception as error:
+            self.view.show_error(
+                f"Failed to adjust saturation:\n\n{error}"
+            )
 
     @staticmethod
     def pil_to_qimage(image: Image.Image) -> QImage:
