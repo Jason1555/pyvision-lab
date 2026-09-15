@@ -1,9 +1,9 @@
-from pathlib import Path
+import math
 
+from pathlib import Path
 from PIL import ExifTags, Image, ImageEnhance
 
 from model.image_settings import ImageSettings
-
 
 class ImageModel:
     def __init__(self):
@@ -137,80 +137,35 @@ class ImageModel:
 
         return exif_data
 
-    def process_image(
-        self,
-        preview: bool = True,
-    ) -> Image.Image:
-        if self.image is None:
-            raise RuntimeError("No image loaded")
+    def process_image(self, preview=True):
+        if self.image is None: return None
 
-        # Для интерфейса используем маленькую копию.
-        # Для будущего сохранения можно будет использовать
-        # оригинальный размер.
-        if preview:
-            if self.preview_image is None:
-                self._update_preview()
-
-            image = self.preview_image
-        else:
-            image = self.image
-
-        if image is None:
-            raise RuntimeError("No image loaded")
-
-        result = image
-
-        # -------------------------
-        # Grayscale
-        # -------------------------
+        result = self.preview_image.copy() if preview else self.image.copy()
 
         if self.image_settings.grayscale:
             result = result.convert("L")
 
-        # -------------------------
-        # Brightness
-        # -------------------------
-
         if self.image_settings.brightness != 0:
-            factor = (
-                1
-                + self.image_settings.brightness / 100
-            )
-
-            result = ImageEnhance.Brightness(
-                result
-            ).enhance(factor)
-
-        # -------------------------
-        # Contrast
-        # -------------------------
+            factor = 1 + self.image_settings.brightness / 100
+            enhancer = ImageEnhance.Brightness(result)
+            result = enhancer.enhance(factor)
 
         if self.image_settings.contrast != 0:
-            factor = (
-                1
-                + self.image_settings.contrast / 100
+            factor = 1 + self.image_settings.contrast / 100
+            enhancer = ImageEnhance.Contrast(result)
+            result = enhancer.enhance(factor)
+
+        if self.image_settings.saturation != 0 and result.mode != "L":
+            factor = 1 + self.image_settings.saturation / 100
+            enhancer = ImageEnhance.Color(result)
+            result = enhancer.enhance(factor)
+
+        if self.image_settings.rotation != 0:
+            result = result.rotate(
+                self.image_settings.rotation,
+                expand=True,
+                resample=Image.Resampling.BICUBIC
             )
-
-            result = ImageEnhance.Contrast(
-                result
-            ).enhance(factor)
-
-        # -------------------------
-        # Saturation
-        # -------------------------
-
-        if (
-            self.image_settings.saturation != 0
-            and result.mode != "L"
-        ):
-            factor = (
-                1
-                + self.image_settings.saturation / 100
-            )
-
-            result = ImageEnhance.Color(
-                result
-            ).enhance(factor)
 
         return result
 
@@ -225,3 +180,42 @@ class ImageModel:
 
     def set_saturation(self, value: int):
         self.image_settings.saturation = value
+
+    def set_rotation(self, value: float):
+        self.image_settings.rotation = value
+
+    def rotate_by(self, angle: float):
+        rotation = self.image_settings.rotation + angle
+
+        if rotation > 180:
+            rotation -= 360
+        elif rotation < -180:
+            rotation += 360
+
+        self.image_settings.rotation = rotation
+
+    def get_processed_size(self):
+        if self.image is None:
+            return None
+
+        width, height = self.image.size
+        angle = self.image_settings.rotation
+
+        if angle % 360 == 0:
+            return width, height
+
+        radians = math.radians(angle)
+
+        cos_value = abs(math.cos(radians))
+        sin_value = abs(math.sin(radians))
+
+        rotated_width = math.ceil(
+            width * cos_value + height * sin_value
+        )
+
+        rotated_height = math.ceil(
+            width * sin_value + height * cos_value
+        )
+
+        return rotated_width, rotated_height
+    

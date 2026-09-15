@@ -18,6 +18,10 @@ class ImageController(QObject):
         self.view.tool_panel.brightness_tool.brightness_changed.connect(self.adjust_brightness)
         self.view.tool_panel.contrast_tool.contrast_changed.connect(self.adjust_contrast)
         self.view.tool_panel.saturation_tool.saturation_changed.connect(self.adjust_saturation)
+        self.view.tool_panel.rotation_dial.rotation_changed.connect(self.adjust_rotation)
+        self.view.tool_panel.rotate_left_clicked.connect(self.rotate_left)
+        self.view.tool_panel.rotate_right_clicked.connect(self.rotate_right)
+        self.view.tool_panel.rotate_reset_clicked.connect(self.reset_rotation)
 
     def open_image(self):
         file_path = self.view.ask_open_file()
@@ -72,86 +76,61 @@ class ImageController(QObject):
         except Exception as error:
             self.view.show_error(f"Failed to open image:\n\n{error}")
 
-    def convert_to_grayscale(self, enabled: bool):
-        try:
-            self.model.set_grayscale(enabled)
+    def _refresh_image(self):
+        image = self.model.process_image()
 
-            image = self.model.process_image()
+        if image is None:
+            return
 
-            qimage = self.pil_to_qimage(image)
-            pixmap = QPixmap.fromImage(qimage)
+        qimage = self.pil_to_qimage(image)
+        pixmap = QPixmap.fromImage(qimage)
 
-            original_size = self.model.get_resolution()
+        processed_size = self.model.get_processed_size()
 
-            self.view.show_image(
-                pixmap,
-                preserve_zoom=True,
-                original_size=original_size,
-            )
+        self.view.show_image(
+            pixmap,
+            preserve_zoom=True,
+            original_size=processed_size
+        )
 
-        except Exception as error:
-            self.view.show_error(
-                f"Failed to convert image to grayscale:\n\n{error}"
-            )
+    def convert_to_grayscale(self, enabled):
+        self.model.set_grayscale(enabled)
+        self._refresh_image()
 
-    def adjust_brightness(self, value: int):
-        try:
-            self.model.set_brightness(value)
+    def adjust_brightness(self, value):
+        self.model.set_brightness(value)
+        self._refresh_image()
 
-            image = self.model.process_image()
-            qimage = self.pil_to_qimage(image)
-            pixmap = QPixmap.fromImage(qimage)
-            original_size = self.model.get_resolution()
+    def adjust_contrast(self, value):
+        self.model.set_contrast(value)
+        self._refresh_image()
 
-            self.view.show_image(pixmap, preserve_zoom=True, original_size=original_size)
+    def adjust_saturation(self, value):
+        self.model.set_saturation(value)
+        self._refresh_image()
 
-        except Exception as error:
-            self.view.show_error(f"Failed to adjust brightness:\n\n{error}")
+    def adjust_rotation(self, value: float):
+        self.model.set_rotation(value)
+        self._refresh_image()
 
-    def adjust_contrast(self, value: int):
-        try:
-            self.model.set_contrast(value)
+    def rotate_left(self):
+        self.model.rotate_by(-90)
+        self._sync_rotation_dial()
+        self._refresh_image()
 
-            image = self.model.process_image()
-
-            qimage = self.pil_to_qimage(image)
-            pixmap = QPixmap.fromImage(qimage)
-
-            original_size = self.model.get_resolution()
-
-            self.view.show_image(
-                pixmap,
-                preserve_zoom=True,
-                original_size=original_size,
-            )
-
-        except Exception as error:
-            self.view.show_error(
-                f"Failed to adjust contrast:\n\n{error}"
-            )
+    def rotate_right(self):
+        self.model.rotate_by(90)
+        self._sync_rotation_dial()
+        self._refresh_image()
 
 
-    def adjust_saturation(self, value: int):
-        try:
-            self.model.set_saturation(value)
+    def reset_rotation(self):
+        self.model.set_rotation(0)
+        self._sync_rotation_dial()
+        self._refresh_image()
 
-            image = self.model.process_image()
-
-            qimage = self.pil_to_qimage(image)
-            pixmap = QPixmap.fromImage(qimage)
-
-            original_size = self.model.get_resolution()
-
-            self.view.show_image(
-                pixmap,
-                preserve_zoom=True,
-                original_size=original_size,
-            )
-
-        except Exception as error:
-            self.view.show_error(
-                f"Failed to adjust saturation:\n\n{error}"
-            )
+    def _sync_rotation_dial(self):
+        self.view.tool_panel.rotation_dial.set_rotation(self.model.image_settings.rotation)
 
     @staticmethod
     def pil_to_qimage(image: Image.Image) -> QImage:
