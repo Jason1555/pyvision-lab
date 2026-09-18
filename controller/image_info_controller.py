@@ -1,15 +1,31 @@
 from model.image_model import ImageModel
 from view.exif_dialog import ExifDialog
 from view.main_window import MainWindow
-
+from controller.image_controller import ImageController
 
 class ImageInfoController:
-    def __init__(self, model: ImageModel, view: MainWindow):
+    def __init__(
+        self,
+        model: ImageModel,
+        view: MainWindow,
+        image_controller: ImageController,
+    ):
         self.model = model
         self.view = view
+        self.image_controller = image_controller
 
         self.exif_dialog = ExifDialog(self.view)
-        self.view.image_info_panel.exif_clicked.connect(self.show_exif)
+
+        self._connect_signals()
+
+    def _connect_signals(self):
+        self.view.image_info_panel.exif_clicked.connect(
+            self.show_exif
+        )
+
+        self.image_controller.image_loaded.connect(
+            self.update_image_info
+        )
 
     def update_image_info(self) -> None:
         file_size = self.model.get_file_size()

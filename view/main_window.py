@@ -5,6 +5,7 @@ from PIL import Image
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import *
 
+from view.histogram_panel import HistogramPanel
 from view.image_canvas import ImageCanvas
 from view.zoom_controls import ZoomControls
 from view.image_info_panel import ImageInfoPanel
@@ -22,6 +23,10 @@ class MainWindow(QMainWindow):
         self.open_button = QPushButton("Open image")
         self.open_button.setObjectName("openButton")
 
+        self.save_button = QPushButton("Save image")
+        self.save_button.setObjectName("saveButton")
+        self.save_button.setEnabled(False)
+
         self.tool_panel = ToolPanel()
         self.tool_panel.setEnabled(False)
 
@@ -29,6 +34,19 @@ class MainWindow(QMainWindow):
         self.image_canvas.setObjectName("imageCanvas")
 
         self.image_info_panel = ImageInfoPanel()
+        self.histogram_panel = HistogramPanel()
+
+        right_panel = QWidget()
+
+        right_layout = QVBoxLayout()
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(16)
+
+        right_layout.addWidget(self.image_info_panel)
+
+        right_layout.addWidget(self.histogram_panel, stretch=1)
+
+        right_panel.setLayout(right_layout)
 
         self.zoom_controls = ZoomControls()
 
@@ -37,13 +55,14 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(16)
 
         main_layout.addWidget(self.open_button)
+        main_layout.addWidget(self.save_button)
 
         content_layout = QHBoxLayout()
         content_layout.setSpacing(16)
 
         content_layout.addWidget(self.tool_panel)
         content_layout.addWidget(self.image_canvas, stretch=1)
-        content_layout.addWidget(self.image_info_panel)
+        content_layout.addWidget(right_panel)
 
         main_layout.addLayout(content_layout, stretch=1)
         main_layout.addWidget(self.zoom_controls)
@@ -84,6 +103,53 @@ class MainWindow(QMainWindow):
         )
 
         return file_path
+
+    def ask_save_file(self, default_name: str = "") -> str:
+        filters = (
+            "PNG Image (*.png);;"
+            "JPEG Image (*.jpg *.jpeg);;"
+            "WebP Image (*.webp);;"
+            "BMP Image (*.bmp);;"
+            "TIFF Image (*.tif *.tiff);;"
+            "All files (*.*)"
+        )
+
+        file_path, selected_filter = QFileDialog.getSaveFileName(
+            self,
+            "Save image",
+            default_name,
+            filters,
+        )
+
+        if not file_path:
+            return ""
+
+        path = Path(file_path)
+
+        if selected_filter.startswith("PNG"):
+            extension = ".png"
+
+        elif selected_filter.startswith("JPEG"):
+            extension = ".jpg"
+
+        elif selected_filter.startswith("WebP"):
+            extension = ".webp"
+
+        elif selected_filter.startswith("BMP"):
+            extension = ".bmp"
+
+        elif selected_filter.startswith("TIFF"):
+            extension = ".tiff"
+
+        else:
+            return file_path
+
+        # Если пользователь уже ввёл правильное расширение,
+        # ничего менять не нужно.
+        if path.suffix.lower() != extension:
+            path = path.with_suffix(extension)
+
+        return str(path)
 
     def show_image(self, pixmap: QPixmap, preserve_zoom: bool = False, original_size: tuple[int, int] | None = None):
         self.image_canvas.set_pixmap(pixmap, preserve_zoom=preserve_zoom, original_size = original_size)

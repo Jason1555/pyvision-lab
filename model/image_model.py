@@ -165,13 +165,46 @@ class ImageModel:
             result = enhancer.enhance(factor)
 
         if self.image_settings.rotation != 0:
+            result = result.convert("RGBA")
             result = result.rotate(
                 self.image_settings.rotation,
                 expand=True,
-                resample=Image.Resampling.BICUBIC
+                resample=Image.Resampling.BILINEAR,
+                fillcolor=(0, 0, 0, 0)
             )
 
         return result
+
+    def save_processed_image(self, file_path: str):
+        if self.image is None:
+            raise RuntimeError("No image loaded")
+
+        result = self.process_image(preview=False)
+
+        if result is None:
+            raise RuntimeError("Could not process image")
+
+        path = Path(file_path)
+
+        if not path.suffix:
+            raise ValueError(
+                "Please specify an image file extension."
+            )
+
+        suffix = path.suffix.lower()
+
+        if suffix in {".jpg", ".jpeg"}:
+            if result.mode in {"RGBA", "LA"}:
+                result = result.convert("RGB")
+
+            result.save(
+                path,
+                format="JPEG",
+                quality=95,
+            )
+            return
+
+        result.save(path)
 
     def set_grayscale(self, enabled: bool):
         self.image_settings.grayscale = enabled

@@ -1,19 +1,35 @@
+from pathlib import Path
+
 from PIL import Image
+
+from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from PyQt6.QtGui import QImage, QPixmap
-from PyQt6.QtCore import *
 
 from model.image_model import ImageModel
 from view.main_window import MainWindow
 
+
 class ImageController(QObject):
     image_loaded = pyqtSignal()
+    image_changed = pyqtSignal()
+    histogram_changed = pyqtSignal()
+
     def __init__(self, model: ImageModel, view: MainWindow):
         super().__init__()
 
         self.model = model
         self.view = view
 
+        self.rotation_timer = QTimer(self)
+        self.rotation_timer.setSingleShot(True)
+        self.rotation_timer.setInterval(30)
+        self.rotation_timer.timeout.connect(self._apply_rotation)
+
+        self._connect_signals()
+
+    def _connect_signals(self):
         self.view.open_button.clicked.connect(self.open_image)
+        self.view.save_button.clicked.connect(self.save_image)
         self.view.tool_panel.grayscale_tool.grayscale_clicked.connect(self.convert_to_grayscale)
         self.view.tool_panel.brightness_tool.brightness_changed.connect(self.adjust_brightness)
         self.view.tool_panel.contrast_tool.contrast_changed.connect(self.adjust_contrast)
@@ -26,28 +42,16 @@ class ImageController(QObject):
         self.view.tool_panel.gamma_changed.connect(self.adjust_gamma)
 
     def open_image(self):
+        self.rotation_timer.stop()
         file_path = self.view.ask_open_file()
 
-        if not file_path: return
+        if not file_path:
+            return
 
         try:
             image = self.model.load_image(file_path)
 
             self.view.tool_panel.reset()
-
-            file_size = self.model.get_file_size()
-            resolution = self.model.get_resolution()
-            color_depth = self.model.get_color_depth()
-            file_format = self.model.get_format()
-            color_model = self.model.get_color_model()
-
-            self.view.image_info_panel.set_image_info(
-                file_size,
-                resolution,
-                color_depth,
-                file_format,
-                color_model,
-            )
 
             qimage = self.pil_to_qimage(image)
 
@@ -63,7 +67,10 @@ class ImageController(QObject):
                     "Qt could not create a pixmap from the image."
                 )
 
-            self.view.show_image(pixmap, preserve_zoom=False)
+            self.view.show_image(
+                pixmap,
+                preserve_zoom=False,
+            )
 
             width, height = image.size
 
@@ -74,9 +81,41 @@ class ImageController(QObject):
             )
 
             self.view.tool_panel.setEnabled(True)
+            self.view.save_button.setEnabled(True)
+
+            self.image_loaded.emit()
 
         except Exception as error:
-            self.view.show_error(f"Failed to open image:\n\n{error}")
+            self.view.show_error(
+                f"Failed to open image:\n\n{error}"
+            )
+
+    def save_image(self):
+        if self.model.get_image() is None:
+            return
+
+        file_name = self.model.get_file_name()
+
+        if file_name:
+            path = Path(file_name)
+            default_name = str(
+                path.with_name(
+                    f"{path.stem}_edited{path.suffix}"
+                )
+            )
+        else:
+            default_name = "edited_image.png"
+
+        file_path = self.view.ask_save_file(default_name)
+
+        if not file_path:
+            return
+
+        try:
+            self.model.save_processed_image(file_path)
+
+        except Exception as error:
+            self.view.show_error(f"Failed to save image:\n\n{error}")
 
     def _refresh_image(self):
         image = self.model.process_image()
@@ -92,48 +131,65 @@ class ImageController(QObject):
         self.view.show_image(
             pixmap,
             preserve_zoom=True,
-            original_size=processed_size
+            original_size=processed_size,
         )
 
-    def convert_to_grayscale(self, enabled):
+        self.image_changed.emit()
+
+    def convert_to_grayscale(self, enabled: bool):
         self.model.set_grayscale(enabled)
         self._refresh_image()
+        self.histogram_changed.emit()
 
-    def adjust_brightness(self, value):
+    def adjust_brightness(self, value: int):
         self.model.set_brightness(value)
         self._refresh_image()
+        self.histogram_changed.emit()
 
-    def adjust_contrast(self, value):
+    def adjust_contrast(self, value: int):
         self.model.set_contrast(value)
         self._refresh_image()
+        self.histogram_changed.emit()
 
-    def adjust_saturation(self, value):
+    def adjust_saturation(self, value: int):
         self.model.set_saturation(value)
         self._refresh_image()
+        self.histogram_changed.emit()
 
     def adjust_rotation(self, value: float):
         self.model.set_rotation(value)
+        self.rotation_timer.start()
+
+    def _apply_rotation(self):
         self._refresh_image()
 
     def rotate_left(self):
-        self.model.rotate_by(-90)
+        self.rotation_timer.stop()
+
+        self.model.rotate_by(90)
         self._sync_rotation_dial()
         self._refresh_image()
 
     def rotate_right(self):
-        self.model.rotate_by(90)
+        self.rotation_timer.stop()
+
+        self.model.rotate_by(-90)
         self._sync_rotation_dial()
         self._refresh_image()
 
     def adjust_linear_correction(self, enabled: bool):
         self.model.set_linear_correction(enabled)
         self._refresh_image()
+        self.histogram_changed.emit()
 
     def adjust_gamma(self, value: float):
         self.model.set_gamma(value)
         self._refresh_image()
+        self.histogram_changed.emit()
 
     def reset_rotation(self):
+        self.rotation_timer.stop()
+
         self.model.set_rotation(0)
         self._sync_rotation_dial()
         self._refresh_image()
