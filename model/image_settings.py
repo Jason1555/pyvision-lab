@@ -7,3 +7,5 @@ class ImageSettings:
     contrast: int = 0
     saturation: int = 0
     rotation: float = 0.0
+    linear_correction: bool = False
+    gamma: float = 1.0

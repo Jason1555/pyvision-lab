@@ -23,9 +23,7 @@ class ImageModel:
         path = Path(file_path)
 
         if not path.exists():
-            raise FileNotFoundError(
-                f"File not found: {path}"
-            )
+            raise FileNotFoundError(f"File not found: {path}")
 
         image = Image.open(path)
         image.load()
@@ -145,6 +143,12 @@ class ImageModel:
         if self.image_settings.grayscale:
             result = result.convert("L")
 
+        if self.image_settings.linear_correction:
+            result = self._apply_linear_correction(result)
+
+        if self.image_settings.gamma != 1.0:
+            result = self._apply_gamma_correction(result)
+
         if self.image_settings.brightness != 0:
             factor = 1 + self.image_settings.brightness / 100
             enhancer = ImageEnhance.Brightness(result)
@@ -184,6 +188,12 @@ class ImageModel:
     def set_rotation(self, value: float):
         self.image_settings.rotation = value
 
+    def set_linear_correction(self, enabled: bool):
+        self.image_settings.linear_correction = enabled
+
+    def set_gamma(self, value: float):
+        self.image_settings.gamma = value
+
     def rotate_by(self, angle: float):
         rotation = self.image_settings.rotation + angle
 
@@ -209,13 +219,33 @@ class ImageModel:
         cos_value = abs(math.cos(radians))
         sin_value = abs(math.sin(radians))
 
-        rotated_width = math.ceil(
-            width * cos_value + height * sin_value
-        )
-
-        rotated_height = math.ceil(
-            width * sin_value + height * cos_value
-        )
+        rotated_width = math.ceil(width * cos_value + height * sin_value)
+        rotated_height = math.ceil(width * sin_value + height * cos_value)
 
         return rotated_width, rotated_height
-    
+
+    def _apply_linear_correction(self, image: Image.Image) -> Image.Image:
+        grayscale = image.convert("L")
+
+        min_value, max_value = grayscale.getextrema()
+
+        if min_value == max_value:
+            return grayscale
+
+        return grayscale.point(
+            lambda pixel: int(
+                (pixel - min_value) * 255 / (max_value - min_value)
+            )
+        )
+
+    def _apply_gamma_correction(self, image: Image.Image) -> Image.Image:
+        gamma = self.image_settings.gamma
+
+        if gamma == 1.0:
+            return image
+
+        return image.point(
+            lambda pixel: int(
+                255 * ((pixel / 255) ** gamma)
+            )
+        )

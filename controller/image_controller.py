@@ -22,6 +22,8 @@ class ImageController(QObject):
         self.view.tool_panel.rotate_left_clicked.connect(self.rotate_left)
         self.view.tool_panel.rotate_right_clicked.connect(self.rotate_right)
         self.view.tool_panel.rotate_reset_clicked.connect(self.reset_rotation)
+        self.view.tool_panel.linear_correction_changed.connect(self.adjust_linear_correction)
+        self.view.tool_panel.gamma_changed.connect(self.adjust_gamma)
 
     def open_image(self):
         file_path = self.view.ask_open_file()
@@ -123,6 +125,13 @@ class ImageController(QObject):
         self._sync_rotation_dial()
         self._refresh_image()
 
+    def adjust_linear_correction(self, enabled: bool):
+        self.model.set_linear_correction(enabled)
+        self._refresh_image()
+
+    def adjust_gamma(self, value: float):
+        self.model.set_gamma(value)
+        self._refresh_image()
 
     def reset_rotation(self):
         self.model.set_rotation(0)
