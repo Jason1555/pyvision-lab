@@ -1,123 +1,547 @@
+/* Vision Lab — dark workstation theme */
+
 QMainWindow {
-    background-color: #15171a;
+    background: #18191c;
 }
 
 QWidget {
-    color: #e6e9ef;
-    font-family: "Segoe UI", sans-serif;
-    font-size: 14px;
+    color: #e2e4e9;
+    font-family: "Segoe UI", "Inter", sans-serif;
+    font-size: 13px;
 }
 
-QLabel#imageLabel {
-    background-color: #1d2025;
-    border: 1px solid #2b3038;
-    border-radius: 12px;
-    color: #8f96a3;
+QWidget:disabled {
+    color: #656976;
 }
 
-QPushButton#openButton {
-    background-color: #3478f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
-    min-height: 20px;
+QWidget#centralWidget {
+    background: #18191c;
+}
+
+/* ---------- Panels ---------- */
+
+QWidget#headerBar,
+QWidget#toolPanel,
+QWidget#rightPanel,
+QWidget#imageInfoPanel,
+QWidget#histogramPanel,
+QWidget#zoomControls {
+    background: #1f2024;
+    border: 1px solid #2a2c33;
+    border-radius: 6px;
+}
+
+QWidget#toolPanel {
+    min-width: 210px;
+    max-width: 230px;
+}
+
+QWidget#rightPanel {
+    min-width: 280px;
+    max-width: 320px;
+}
+
+/* ---------- Header ---------- */
+
+QLabel#appTitle {
+    color: #f4f5f7;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+QLabel#appSubtitle {
+    color: #656976;
+    font-size: 11px;
+}
+
+/* ---------- Buttons ---------- */
+
+QPushButton {
+    background: #26282e;
+    border: 1px solid #383b44;
+    border-radius: 4px;
+    color: #d1d5db;
+    padding: 7px 12px;
+    min-height: 18px;
+}
+
+QPushButton:hover {
+    background: #2f323a;
+    border-color: #4b505c;
+    color: #ffffff;
+}
+
+QPushButton:pressed {
+    background: #1e293b;
+    border-color: #3b82f6;
+    color: #bfdbfe;
+}
+
+QPushButton:disabled {
+    background: #202126;
+    border-color: #2a2c33;
+    color: #555a66;
+}
+
+QPushButton#openButton,
+QPushButton#saveButton {
+    min-width: 92px;
     font-weight: 600;
 }
 
+QPushButton#openButton {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
 QPushButton#openButton:hover {
-    background-color: #4285f8;
+    background: #60a5fa;
+    border-color: #60a5fa;
 }
 
 QPushButton#openButton:pressed {
-    background-color: #2865d0;
+    background: #2563eb;
+    border-color: #2563eb;
 }
 
-QPushButton#openButton:disabled {
-    background-color: #30343b;
-    color: #777e8a;
+QPushButton#saveButton:enabled {
+    color: #dbeafe;
+    border-color: #365a94;
 }
 
-QMainWindow {
-    background-color: #15171a;
+QPushButton#saveButton:enabled:hover {
+    background: #1e293b;
+    border-color: #3b82f6;
 }
 
-QWidget {
-    color: #e6e9ef;
-    font-family: "Segoe UI", sans-serif;
-    font-size: 14px;
+/* ---------- Tool panel ---------- */
+
+QLabel#panelTitle {
+    color: #8c919e;
+    font-size: 10px;
+    font-weight: 700;
 }
+
+QLabel#sectionTitle {
+    color: #656976;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+QWidget#adjustmentTool {
+    background: transparent;
+    min-height: 34px;
+}
+
+QLabel#toolLabel {
+    color: #9498a4;
+    font-size: 12px;
+}
+
+QLabel#toolValue {
+    color: #d1d5db;
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QPushButton#grayscaleTool,
+QPushButton#linearCorrectionButton {
+    text-align: left;
+    font-weight: 600;
+}
+
+QPushButton#grayscaleTool:checked,
+QPushButton#linearCorrectionButton:checked {
+    background: #1e293b;
+    border-color: #3b82f6;
+    color: #93c5fd;
+}
+
+/* ---------- Sliders ---------- */
+
+QSlider::groove:horizontal {
+    height: 4px;
+    background: #151619;
+    border: 1px solid #2d3038;
+    border-radius: 2px;
+}
+
+QSlider::sub-page:horizontal {
+    background: #3b82f6;
+    border-radius: 2px;
+}
+
+QSlider::add-page:horizontal {
+    background: #24262b;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal {
+    width: 10px;
+    margin: -5px 0;
+    background: #4a4e59;
+    border: 1px solid #6b7280;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal:hover {
+    background: #5d6370;
+    border-color: #93c5fd;
+}
+
+QSlider::handle:horizontal:pressed {
+    background: #3b82f6;
+    border-color: #bfdbfe;
+}
+
+/* ---------- Rotation ---------- */
+
+QDial {
+    background: #151619;
+}
+
+QLabel#rotationValue {
+    color: #93c5fd;
+    font-family: "Consolas", monospace;
+    font-weight: 600;
+}
+
+/* ---------- Canvas ---------- */
 
 QGraphicsView#imageCanvas {
-    background-color: #101216;
-    border: 1px solid #2b3038;
-    border-radius: 12px;
+    background: #131417;
+    border: 1px solid #2a2c33;
+    border-radius: 6px;
 }
 
-QPushButton#openButton {
-    background-color: #3478f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
-    min-height: 20px;
+QGraphicsView#imageCanvas:hover {
+    border-color: #383b44;
+}
+
+/* ---------- Image info ---------- */
+
+QWidget#imageInfoPanel QLabel {
+    color: #9498a4;
+}
+
+QWidget#imageInfoPanel QLabel#infoValue {
+    color: #e2e4e9;
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 12px;
+}
+
+QPushButton#exifButton {
+    background: #24262b;
+    border: 1px solid #383b44;
+    color: #9ca3af;
+    font-size: 11px;
     font-weight: 600;
 }
 
-QPushButton#openButton:hover {
-    background-color: #4285f8;
+QPushButton#exifButton:hover {
+    color: #ffffff;
+    border-color: #4b505c;
 }
 
-QPushButton#openButton:pressed {
-    background-color: #2865d0;
+/* ---------- Histogram ---------- */
+
+QCheckBox {
+    color: #9498a4;
+    spacing: 6px;
 }
 
-QScrollBar:vertical {
-    background: #16191d;
-    width: 10px;
-    margin: 0;
+QCheckBox:hover {
+    color: #e2e4e9;
 }
 
-QScrollBar::handle:vertical {
-    background: #3a404a;
-    min-height: 30px;
-    border-radius: 5px;
+QCheckBox::indicator {
+    width: 12px;
+    height: 12px;
+    border: 1px solid #4a4e59;
+    border-radius: 2px;
+    background: #151619;
 }
 
-QScrollBar::handle:vertical:hover {
-    background: #4a5260;
+QCheckBox::indicator:checked {
+    background: #3b82f6;
+    border-color: #3b82f6;
 }
 
-QScrollBar:horizontal {
-    background: #16191d;
-    height: 10px;
-    margin: 0;
+QCheckBox::indicator:hover {
+    border-color: #60a5fa;
 }
 
-QScrollBar::handle:horizontal {
-    background: #3a404a;
-    min-width: 30px;
-    border-radius: 5px;
-}
+/* ---------- Zoom ---------- */
 
-QScrollBar::handle:horizontal:hover {
-    background: #4a5260;
+QPushButton#zoomOutButton,
+QPushButton#zoomInButton {
+    min-width: 28px;
+    max-width: 28px;
+    padding: 4px;
+    font-size: 15px;
 }
 
 QPushButton#zoomLabel {
     background: transparent;
-    color: #b8bec9;
     border: none;
-    min-width: 52px;
+    color: #b8bec9;
+    min-width: 58px;
     padding: 4px 8px;
-    border-radius: 6px;
+    font-family: "Consolas", monospace;
 }
 
 QPushButton#zoomLabel:hover {
-    background: #292e36;
+    background: #2c2e35;
     color: #ffffff;
 }
 
-QPushButton#zoomLabel:pressed {
-    background: #343a44;
+QPushButton#fitButton {
+    min-width: 42px;
+    color: #9498a4;
+}
+
+/* ---------- Scrollbars ---------- */
+
+QScrollBar:vertical {
+    background: #18191c;
+    width: 8px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #33363e;
+    min-height: 28px;
+    border-radius: 2px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #464a55;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical,
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: transparent;
+    border: none;
+}
+
+QScrollBar:horizontal {
+    background: #18191c;
+    height: 8px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #33363e;
+    min-width: 28px;
+    border-radius: 2px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #464a55;
+}
+
+/* ---------- Dialogs ---------- */
+
+QDialog {
+    background: #1f2024;
+}
+
+QDialog QLabel {
+    color: #d1d5db;
+}
+
+QDialog QScrollArea {
+    border: 1px solid #2a2c33;
+    background: #18191c;
+}
+
+QDialogButtonBox QPushButton {
+    min-width: 72px;
+}
+
+/* ---------- Inputs ---------- */
+
+QLineEdit,
+QComboBox,
+QSpinBox,
+QDoubleSpinBox {
+    background: #151619;
+    border: 1px solid #383b44;
+    border-radius: 4px;
+    color: #e2e4e9;
+    padding: 5px 7px;
+    selection-background-color: #3b82f6;
+}
+
+QLineEdit:focus,
+QComboBox:focus,
+QSpinBox:focus,
+QDoubleSpinBox:focus {
+    border-color: #3b82f6;
+}
+
+/* ---------- Tool panel ---------- */
+
+QWidget#toolPanel {
+    background: #1f2024;
+    border: 1px solid #2a2c33;
+    border-radius: 6px;
+    min-width: 230px;
+    max-width: 250px;
+}
+
+QLabel#sectionTitle {
+    color: #656976;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+QWidget#adjustmentTool {
+    min-height: 28px;
+    background: transparent;
+}
+
+QLabel#toolLabel {
+    color: #a1a5af;
+    font-size: 12px;
+}
+
+QLabel#toolValue {
+    color: #d5d8df;
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+QWidget#rotationContainer {
+    background: #1b1c20;
+    border: 1px solid #292c33;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+QDial#rotationDialWidget {
+    background: #151619;
+}
+
+QLabel#rotationValue {
+    color: #93c5fd;
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QPushButton#rotateLeftButton,
+QPushButton#rotateResetButton,
+QPushButton#rotateRightButton {
+    min-height: 26px;
+    max-height: 26px;
+    padding: 2px;
+    font-size: 13px;
+}
+
+QPushButton#rotateResetButton {
+    min-width: 44px;
+}
+
+QPushButton#linearCorrectionButton {
+    min-height: 30px;
+    text-align: left;
+    padding-left: 10px;
+    font-weight: 600;
+}
+
+QPushButton#linearCorrectionButton:checked {
+    background: #1e293b;
+    border-color: #3b82f6;
+    color: #93c5fd;
+}
+
+/* ---------- Adjustment value input ---------- */
+
+QLineEdit#toolValueInput {
+    background: #151619;
+    border: 1px solid #30333b;
+    border-radius: 3px;
+    color: #d5d8df;
+    padding: 2px 4px;
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 11px;
+}
+
+QLineEdit#toolValueInput:hover {
+    border-color: #464a55;
+}
+
+QLineEdit#toolValueInput:focus {
+    border-color: #3b82f6;
+    background: #191b20;
+}
+
+/* ---------- Adjustment reset ---------- */
+
+QPushButton#toolResetButton {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: #686d78;
+    padding: 0;
+    font-size: 14px;
+}
+
+QPushButton#toolResetButton:hover {
+    background: #292c33;
+    border-color: #383b44;
+    color: #d1d5db;
+}
+
+QPushButton#toolResetButton:pressed {
+    background: #1e293b;
+    border-color: #3b82f6;
+    color: #93c5fd;
+}
+
+QPushButton#toolResetButton:disabled {
+    color: #3f424a;
+}
+
+/* ---------- Rotation control ---------- */
+
+QWidget#rotationControl {
+    background: transparent;
+}
+
+QDial#rotationDialWidget {
+    background: transparent;
+}
+
+QLineEdit#rotationValueInput {
+    background: #151619;
+    border: 1px solid #30333b;
+    border-radius: 4px;
+    color: #dbeafe;
+    padding: 2px 5px;
+
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QLineEdit#rotationValueInput:hover {
+    border-color: #464a55;
+}
+
+QLineEdit#rotationValueInput:focus {
+    background: #191b20;
+    border-color: #3b82f6;
+}
+
+QLabel#rotationDegreeLabel {
+    color: #737783;
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 12px;
 }

@@ -1,7 +1,6 @@
 from PyQt6.QtCore import pyqtSignal
 from view.tools.adjustment_tool import AdjustmentTool
 
-
 class BrightnessTool(AdjustmentTool):
     brightness_changed = pyqtSignal(int)
 

@@ -1,4 +1,5 @@
 from PyQt6.QtCore import pyqtSignal
+
 from view.tools.adjustment_tool import AdjustmentTool
 
 class GammaTool(AdjustmentTool):
@@ -20,4 +21,6 @@ class GammaTool(AdjustmentTool):
         )
 
     def _on_gamma_changed(self, value: int):
-        self.gamma_changed.emit(value / self.scale)
+        self.gamma_changed.emit(
+            value / self.scale
+        )

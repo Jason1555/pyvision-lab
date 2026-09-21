@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(central_widget)
 
-        #self.load_styles()
+        self.load_styles()
 
     def load_styles(self):
         style_path = (
