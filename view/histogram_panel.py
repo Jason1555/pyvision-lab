@@ -79,35 +79,42 @@ class HistogramPanel(QWidget):
 
         self.axis.clear()
 
-        channels = []
+        # Режим ЧБ: рисуем одну серую кривую яркости.
+        is_grayscale = "L" in self._before and "L" in self._after
+        if is_grayscale:
+            x = range(256)
+            self.axis.plot(x, self._before["L"], color="gray", alpha=0.4, linewidth=1)
+            self.axis.plot(x, self._after["L"], color="black", alpha=1.0, linewidth=1.2)
+        else:
+            channels = []
 
-        if self.red_checkbox.isChecked():
-            channels.append(("R", "red"))
+            if self.red_checkbox.isChecked():
+                channels.append(("R", "red"))
 
-        if self.green_checkbox.isChecked():
-            channels.append(("G", "green"))
+            if self.green_checkbox.isChecked():
+                channels.append(("G", "green"))
 
-        if self.blue_checkbox.isChecked():
-            channels.append(("B", "blue"))
+            if self.blue_checkbox.isChecked():
+                channels.append(("B", "blue"))
 
-        x = range(256)
+            x = range(256)
 
-        for channel, color in channels:
-            self.axis.plot(
-                x,
-                self._before[channel],
-                color=color,
-                alpha=0.3,
-                linewidth=1,
-            )
+            for channel, color in channels:
+                self.axis.plot(
+                    x,
+                    self._before[channel],
+                    color=color,
+                    alpha=0.3,
+                    linewidth=1,
+                )
 
-            self.axis.plot(
-                x,
-                self._after[channel],
-                color=color,
-                alpha=1.0,
-                linewidth=1.2,
-            )
+                self.axis.plot(
+                    x,
+                    self._after[channel],
+                    color=color,
+                    alpha=1.0,
+                    linewidth=1.2,
+                )
 
         self.axis.set_xlim(0, 255)
         self.axis.set_xlabel("Value")

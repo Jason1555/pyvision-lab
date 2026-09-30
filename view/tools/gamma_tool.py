@@ -7,7 +7,7 @@ class GammaTool(AdjustmentTool):
 
     def __init__(self, parent=None):
         super().__init__(
-            "Gamma",
+            "Gamma (nonlinear)",
             parent,
             minimum=10,
             maximum=300,

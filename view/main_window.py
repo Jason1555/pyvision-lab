@@ -159,10 +159,17 @@ class MainWindow(QMainWindow):
             f"Vision Lab — {file_name} — {width} × {height}"
         )
 
-    def show_error(self, message: str) -> None:
+    def show_error(self, message: str, title: str = "Unable to open image") -> None:
         QMessageBox.critical(
             self,
-            "Unable to open image",
+            title,
+            message,
+        )
+
+    def show_info(self, message: str, title: str = "Done") -> None:
+        QMessageBox.information(
+            self,
+            title,
             message,
         )
 

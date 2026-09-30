@@ -44,12 +44,15 @@ class ImageInfoController:
             self.view.image_info_panel.clear()
             return
 
+        extra_info = self.model.get_extra_info()
+
         self.view.image_info_panel.set_image_info(
             file_size,
             resolution,
             color_depth,
             file_format,
             color_model,
+            extra_info,
         )
 
     def show_exif(self) -> None:

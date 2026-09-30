@@ -40,6 +40,7 @@ class ToolPanel(QWidget):
 
         self.gamma_tool = GammaTool()
         self.gamma_tool.setObjectName("gammaTool")
+        self.gamma_tool.setToolTip("Нелинейная (гамма) коррекция")
 
         self.rotation_dial = RotationDial()
         self.rotation_dial.setObjectName("rotationDial")
@@ -49,7 +50,7 @@ class ToolPanel(QWidget):
         # -------------------------------------------------
 
         self.linear_correction_button = QPushButton(
-            "Linear correction"
+            "Linear correction (B/W)"
         )
         self.linear_correction_button.setObjectName(
             "linearCorrectionButton"

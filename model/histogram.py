@@ -5,6 +5,12 @@ from PIL import Image
 class Histogram:
     @staticmethod
     def calculate(image: Image.Image) -> dict[str, np.ndarray]:
+        # ЧБ: одна кривая яркости вместо трёх одинаковых R=G=B.
+        if image.mode == "L":
+            gray = np.asarray(image).ravel()
+            hist = np.bincount(gray, minlength=256)
+            return {"L": hist, "R": hist, "G": hist, "B": hist}
+
         rgba_image = image.convert("RGBA")
         array = np.asarray(rgba_image)
 

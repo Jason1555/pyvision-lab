@@ -13,6 +13,8 @@ class ImageInfoPanel(QFrame):
         self.color_depth_label = QLabel("—")
         self.format_label = QLabel("—")
         self.color_model_label = QLabel("—")
+        self.extra_label = QLabel("—")
+        self.extra_label.setWordWrap(True)
 
         self.exif_button = QPushButton("EXIF")
 
@@ -24,6 +26,7 @@ class ImageInfoPanel(QFrame):
         form_layout.addRow("Color depth:", self.color_depth_label)
         form_layout.addRow("Format:", self.format_label)
         form_layout.addRow("Color model:", self.color_model_label)
+        form_layout.addRow("Extra:", self.extra_label)
 
         layout = QVBoxLayout()
         layout.addWidget(self.title_label)
@@ -35,7 +38,7 @@ class ImageInfoPanel(QFrame):
 
         self.exif_button.clicked.connect(self.exif_clicked.emit)
 
-    def set_image_info(self, file_size: int, resolution: tuple[int, int], color_depth: int, file_format: str, color_model: str):
+    def set_image_info(self, file_size: int, resolution: tuple[int, int], color_depth, file_format: str, color_model: str, extra_info: dict[str, str] | None = None):
         self.file_size_label.setText(self._format_file_size(file_size))
 
         width, height = resolution
@@ -44,9 +47,15 @@ class ImageInfoPanel(QFrame):
 
         self.color_depth_label.setText(f"{color_depth} bit/pixel")
 
-        self.format_label.setText(file_format)
+        self.format_label.setText(str(file_format))
 
         self.color_model_label.setText(color_model)
+
+        if extra_info:
+            lines = [f"{key}: {value}" for key, value in extra_info.items()]
+            self.extra_label.setText("\n".join(lines))
+        else:
+            self.extra_label.setText("—")
 
     def clear(self):
         self.file_size_label.setText("—")
@@ -54,6 +63,7 @@ class ImageInfoPanel(QFrame):
         self.color_depth_label.setText("—")
         self.format_label.setText("—")
         self.color_model_label.setText("—")
+        self.extra_label.setText("—")
 
     @staticmethod
     def _format_file_size(size: int) -> str:

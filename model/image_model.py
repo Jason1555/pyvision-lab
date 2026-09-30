@@ -82,7 +82,7 @@ class ImageModel:
 
         return self.image.size
 
-    def get_color_depth(self) -> int | None:
+    def get_color_depth(self) -> int | str | None:
         if self.image is None:
             return None
 
@@ -90,26 +90,43 @@ class ImageModel:
             "1": 1,
             "L": 8,
             "P": 8,
+            "LA": 16,
+            "PA": 16,
             "RGB": 24,
             "RGBA": 32,
+            "RGBa": 32,
             "CMYK": 32,
             "YCbCr": 24,
             "LAB": 24,
             "HSV": 24,
             "I": 32,
+            "I;16": 16,
+            "I;16B": 16,
+            "I;16L": 16,
             "F": 32,
         }
 
-        return mode_depth.get(
-            self.image.mode,
-            "Unknown",
-        )
+        if self.image.mode in mode_depth:
+            return mode_depth[self.image.mode]
+
+        # Fallback: число каналов * 8 бит.
+        try:
+            return len(self.image.getbands()) * 8
+        except Exception:
+            return "Unknown"
 
     def get_format(self) -> str | None:
         if self.image is None:
             return None
 
-        return self.image.format
+        if self.image.format:
+            return self.image.format
+
+        # Fallback для изображений без установленного format.
+        if self.file_path is not None and self.file_path.suffix:
+            return self.file_path.suffix.lstrip(".").upper()
+
+        return "Unknown"
 
     def get_color_model(self) -> str:
         if self.image is None:
@@ -131,9 +148,110 @@ class ImageModel:
                 str(tag_id),
             )
 
-            exif_data[tag_name] = str(value)
+            exif_data[tag_name] = self._format_exif_value(value)
 
         return exif_data
+
+    @staticmethod
+    def _format_exif_value(value) -> str:
+        # IFDRational (например ExposureTime) -> читаемая дробь/число.
+        try:
+            from PIL.TiffImagePlugin import IFDRational
+
+            if isinstance(value, IFDRational):
+                try:
+                    as_float = float(value)
+                except Exception:
+                    as_float = None
+                if as_float is not None:
+                    if value.denominator in (0, 1) or as_float >= 1:
+                        return f"{as_float:.3g}"
+                    return f"{value.numerator}/{value.denominator} ({as_float:.4g})"
+                return f"{value.numerator}/{value.denominator}"
+        except ImportError:
+            pass
+
+        if isinstance(value, bytes):
+            try:
+                text = value.decode("utf-8", errors="replace").strip().strip("\x00")
+                return text if text else repr(value)
+            except Exception:
+                return repr(value)
+
+        if isinstance(value, tuple):
+            return ", ".join(ImageModel._format_exif_value(v) for v in value)
+
+        text = str(value).strip()
+        # Обрезаем слишком длинные сырые дампы.
+        if len(text) > 300:
+            text = text[:300] + "…"
+        return text
+
+    def get_extra_info(self) -> dict[str, str]:
+        """Другая полезная информация для панели (пункт ТЗ)."""
+        if self.image is None:
+            return {}
+
+        width, height = self.image.size
+        bands = self.image.getbands()
+        channels = len(bands)
+        megapixels = width * height / 1_000_000
+        memory_bytes = width * height * channels
+
+        # Соотношение сторон.
+        import math as _math
+
+        gcd = _math.gcd(width, height) or 1
+        aspect = f"{width // gcd}:{height // gcd}"
+
+        if width > height:
+            orientation = "Landscape"
+        elif height > width:
+            orientation = "Portrait"
+        else:
+            orientation = "Square"
+
+        dpi = self.image.info.get("dpi", None)
+        try:
+            if isinstance(dpi, tuple) and len(dpi) == 2:
+                dpi_text = f"{float(dpi[0]):.0f} x {float(dpi[1]):.0f}"
+            elif dpi is not None:
+                dpi_text = str(dpi)
+            else:
+                dpi_text = "—"
+        except Exception:
+            dpi_text = str(dpi)
+
+        mtime_text = "—"
+        if self.file_path is not None:
+            try:
+                import datetime
+
+                ts = self.file_path.stat().st_mtime
+                mtime_text = datetime.datetime.fromtimestamp(ts).strftime(
+                    "%Y-%m-%d %H:%M"
+                )
+            except OSError:
+                pass
+
+        return {
+            "Megapixels": f"{megapixels:.2f} MP",
+            "Aspect": f"{aspect} ({orientation})",
+            "Channels": f"{channels} ({'/'.join(bands)})",
+            "In memory": self._format_bytes(memory_bytes),
+            "DPI": dpi_text,
+            "Modified": mtime_text,
+        }
+
+    @staticmethod
+    def _format_bytes(size: int) -> str:
+        if size < 1024:
+            return f"{size} B"
+        if size < 1024 ** 2:
+            return f"{size / 1024:.2f} KB"
+        if size < 1024 ** 3:
+            return f"{size / 1024 ** 2:.2f} MB"
+        return f"{size / 1024 ** 3:.2f} GB"
 
     def process_image(self, preview=True):
         if self.image is None: return None
@@ -165,13 +283,7 @@ class ImageModel:
             result = enhancer.enhance(factor)
 
         if self.image_settings.rotation != 0:
-            result = result.convert("RGBA")
-            result = result.rotate(
-                self.image_settings.rotation,
-                expand=True,
-                resample=Image.Resampling.BILINEAR,
-                fillcolor=(0, 0, 0, 0)
-            )
+            result = self._apply_rotation(result)
 
         return result
 
@@ -193,18 +305,44 @@ class ImageModel:
 
         suffix = path.suffix.lower()
 
+        save_kwargs = {}
+        # Пробрасываем EXIF, чтобы не терять метаданные (JPEG/TIFF).
+        try:
+            original_exif = self.image.getexif()
+            if len(original_exif):
+                save_kwargs["exif"] = original_exif
+        except Exception:
+            pass
+
         if suffix in {".jpg", ".jpeg"}:
-            if result.mode in {"RGBA", "LA"}:
+            if result.mode in {"RGBA", "LA", "PA", "P"}:
+                # Белый фон вместо чёрного для прозрачных областей.
+                background = Image.new("RGB", result.size, (255, 255, 255))
+                alpha = None
+                try:
+                    alpha = result.split()[-1]
+                except Exception:
+                    alpha = None
+                if alpha is not None:
+                    background.paste(result.convert("RGB"), mask=alpha)
+                    result = background
+                else:
+                    result = result.convert("RGB")
+            elif result.mode != "RGB":
                 result = result.convert("RGB")
 
             result.save(
                 path,
                 format="JPEG",
                 quality=95,
+                **save_kwargs,
             )
             return
 
-        result.save(path)
+        if suffix in {".tif", ".tiff"} and result.mode == "P":
+            result = result.convert("RGB")
+
+        result.save(path, **save_kwargs)
 
     def set_grayscale(self, enabled: bool):
         self.image_settings.grayscale = enabled
@@ -258,18 +396,41 @@ class ImageModel:
         return rotated_width, rotated_height
 
     def _apply_linear_correction(self, image: Image.Image) -> Image.Image:
+        # Линейная растяжка гистограммы (нормализация min..max -> 0..255).
+        # Для ЧБ — один канал, для цветного — поканально, чтобы не терять цвет.
+        if image.mode == "L":
+            min_value, max_value = image.getextrema()
+
+            if min_value == max_value:
+                return image
+
+            lut = [
+                max(0, min(255, round((i - min_value) * 255 / (max_value - min_value))))
+                for i in range(256)
+            ]
+            return image.point(lut)
+
+        if image.mode in ("RGB", "RGBA", "LA", "PA", "CMYK", "YCbCr", "LAB", "HSV"):
+            bands = image.split()
+            stretched = []
+            for band in bands:
+                # Альфу не трогаем.
+                if band.mode == "A":
+                    stretched.append(band)
+                    continue
+                lo, hi = band.getextrema()
+                if lo == hi:
+                    stretched.append(band)
+                    continue
+                lut = [
+                    max(0, min(255, round((i - lo) * 255 / (hi - lo))))
+                    for i in range(256)
+                ]
+                stretched.append(band.point(lut))
+            return Image.merge(image.mode, stretched)
+
         grayscale = image.convert("L")
-
-        min_value, max_value = grayscale.getextrema()
-
-        if min_value == max_value:
-            return grayscale
-
-        return grayscale.point(
-            lambda pixel: int(
-                (pixel - min_value) * 255 / (max_value - min_value)
-            )
-        )
+        return self._apply_linear_correction(grayscale)
 
     def _apply_gamma_correction(self, image: Image.Image) -> Image.Image:
         gamma = self.image_settings.gamma
@@ -277,8 +438,33 @@ class ImageModel:
         if gamma == 1.0:
             return image
 
-        return image.point(
-            lambda pixel: int(
-                255 * ((pixel / 255) ** gamma)
-            )
+        # LUT быстрее и точнее, чем point(lambda) для каждого пикселя.
+        lut_1ch = [
+            max(0, min(255, round(255 * ((i / 255) ** gamma))))
+            for i in range(256)
+        ]
+        bands = len(image.getbands())
+        return image.point(lut_1ch * bands)
+
+    def _apply_rotation(self, image: Image.Image) -> Image.Image:
+        angle = self.image_settings.rotation % 360
+
+        # Точный поворот на кратные 90° без интерполяции и прозрачных полей.
+        if angle % 90 == 0:
+            steps = int(round(angle / 90)) % 4
+            transpose_map = {
+                1: Image.Transpose.ROTATE_90,
+                2: Image.Transpose.ROTATE_180,
+                3: Image.Transpose.ROTATE_270,
+            }
+            if steps in transpose_map:
+                return image.transpose(transpose_map[steps])
+            return image
+
+        rgba_image = image.convert("RGBA")
+        return rgba_image.rotate(
+            self.image_settings.rotation,
+            expand=True,
+            resample=Image.Resampling.BILINEAR,
+            fillcolor=(0, 0, 0, 0),
         )

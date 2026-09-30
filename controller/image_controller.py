@@ -113,9 +113,10 @@ class ImageController(QObject):
 
         try:
             self.model.save_processed_image(file_path)
+            self.view.show_info(f"Image saved:\n\n{file_path}")
 
         except Exception as error:
-            self.view.show_error(f"Failed to save image:\n\n{error}")
+            self.view.show_error(f"Failed to save image:\n\n{error}", title="Unable to save image")
 
     def _refresh_image(self):
         image = self.model.process_image()
@@ -162,6 +163,7 @@ class ImageController(QObject):
 
     def _apply_rotation(self):
         self._refresh_image()
+        self.histogram_changed.emit()
 
     def rotate_left(self):
         self.rotation_timer.stop()
@@ -169,6 +171,7 @@ class ImageController(QObject):
         self.model.rotate_by(90)
         self._sync_rotation_dial()
         self._refresh_image()
+        self.histogram_changed.emit()
 
     def rotate_right(self):
         self.rotation_timer.stop()
@@ -176,6 +179,7 @@ class ImageController(QObject):
         self.model.rotate_by(-90)
         self._sync_rotation_dial()
         self._refresh_image()
+        self.histogram_changed.emit()
 
     def adjust_linear_correction(self, enabled: bool):
         self.model.set_linear_correction(enabled)
@@ -193,6 +197,7 @@ class ImageController(QObject):
         self.model.set_rotation(0)
         self._sync_rotation_dial()
         self._refresh_image()
+        self.histogram_changed.emit()
 
     def _sync_rotation_dial(self):
         self.view.tool_panel.rotation_dial.set_rotation(self.model.image_settings.rotation)

@@ -2,7 +2,24 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
 class ExifDialog(QDialog):
-    def __init__(self, exif_data=None, parent=None):
+    # Ключевые поля, требуемые ТЗ (не менее 5 пунктов) — показываем первыми.
+    PRIORITY_TAGS = [
+        "Make",
+        "Model",
+        "DateTimeOriginal",
+        "DateTime",
+        "ExposureTime",
+        "FNumber",
+        "ISOSpeedRatings",
+        "PhotographicSensitivity",
+        "FocalLength",
+        "ImageWidth",
+        "ImageLength",
+        "ExifImageWidth",
+        "ExifImageHeight",
+    ]
+
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("EXIF Information")
@@ -31,16 +48,35 @@ class ExifDialog(QDialog):
 
         if not exif_data:
             self.form_layout.addRow(
-                QLabel("Exif data:"),
-                QLabel("No Exif data avaliable")
+                QLabel("EXIF:"),
+                QLabel("No EXIF data available for this file")
+            )
+            self.form_layout.addRow(
+                QLabel("Hint:"),
+                QLabel("Try a JPEG photo from a camera/phone (PNG/BMP usually have no EXIF)")
             )
             return
 
+        ordered = {}
+        for tag in self.PRIORITY_TAGS:
+            if tag in exif_data:
+                ordered[tag] = exif_data[tag]
         for name, value in exif_data.items():
-            self.form_layout.addRow(
-                QLabel(f"{name}:"),
-                QLabel(value)
+            if name not in ordered:
+                ordered[name] = value
+
+        count_label = QLabel(f"Found {len(ordered)} tags (top: {min(len(ordered), len(self.PRIORITY_TAGS))} key tags first):")
+        count_label.setWordWrap(True)
+        self.form_layout.addRow(count_label)
+
+        for name, value in ordered.items():
+            name_label = QLabel(f"{name}:")
+            value_label = QLabel(value)
+            value_label.setWordWrap(True)
+            value_label.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextSelectableByMouse
             )
+            self.form_layout.addRow(name_label, value_label)
 
     def clear_fields(self):
         while self.form_layout.rowCount() > 0:
