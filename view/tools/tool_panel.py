@@ -50,12 +50,26 @@ class ToolPanel(QWidget):
         # -------------------------------------------------
 
         self.linear_correction_button = QPushButton(
-            "Linear correction (B/W)"
+            "Линейная коррекция"
         )
         self.linear_correction_button.setObjectName(
             "linearCorrectionButton"
         )
         self.linear_correction_button.setCheckable(True)
+        self.linear_correction_button.setEnabled(False)
+        self.linear_correction_button.setToolTip(
+            "Сначала включите «ЧБ»: линейная коррекция работает "
+            "только для чёрно-белого изображения (требование задания)"
+        )
+
+        self._linear_locked_tooltip = (
+            "Линейная коррекция (cutoff 2%): 2% самых тёмных → 0, "
+            "2% самых светлых → 255. Растяжка яркости 0..255"
+        )
+        self._linear_unlocked_tooltip = (
+            "Сначала включите «ЧБ»: линейная коррекция работает "
+            "только для чёрно-белого изображения (требование задания)"
+        )
 
         # -------------------------------------------------
         # Rotation buttons
@@ -105,6 +119,10 @@ class ToolPanel(QWidget):
             self.linear_correction_changed.emit
         )
 
+        self.grayscale_tool.toggled.connect(
+            self._on_grayscale_toggled
+        )
+
         self.gamma_tool.gamma_changed.connect(
             self.gamma_changed.emit
         )
@@ -143,7 +161,7 @@ class ToolPanel(QWidget):
         # Adjustments
         # =================================================
 
-        adjustments_title = QLabel("ADJUSTMENTS")
+        adjustments_title = QLabel("НАСТРОЙКИ")
         adjustments_title.setObjectName("sectionTitle")
 
         layout.addWidget(adjustments_title)
@@ -169,7 +187,7 @@ class ToolPanel(QWidget):
 
         layout.addSpacing(18)
 
-        transform_title = QLabel("TRANSFORM")
+        transform_title = QLabel("ПОВОРОТ")
         transform_title.setObjectName("sectionTitle")
 
         layout.addWidget(transform_title)
@@ -205,7 +223,7 @@ class ToolPanel(QWidget):
 
         layout.addSpacing(18)
 
-        correction_title = QLabel("CORRECTION")
+        correction_title = QLabel("КОРРЕКЦИЯ")
         correction_title.setObjectName("sectionTitle")
 
         layout.addWidget(correction_title)
@@ -217,29 +235,6 @@ class ToolPanel(QWidget):
 
         # Push everything to the top
         layout.addStretch()
-
-    def set_tools_enabled(self, enabled: bool):
-        self.grayscale_tool.setEnabled(enabled)
-        self.brightness_tool.setEnabled(enabled)
-        self.contrast_tool.setEnabled(enabled)
-        self.saturation_tool.setEnabled(enabled)
-        self.gamma_tool.setEnabled(enabled)
-
-        self.rotation_dial.set_enabled(enabled)
-
-        self.linear_correction_button.setEnabled(
-            enabled
-        )
-
-        self.rotate_left_button.setEnabled(
-            enabled
-        )
-        self.rotate_reset_button.setEnabled(
-            enabled
-        )
-        self.rotate_right_button.setEnabled(
-            enabled
-        )
 
     def reset(self):
         self.grayscale_tool.blockSignals(True)
@@ -273,3 +268,24 @@ class ToolPanel(QWidget):
         self.linear_correction_button.blockSignals(
             False
         )
+        # После сброса ЧБ выключен — линейную снова блокируем.
+        self._apply_linear_lock(False)
+
+    def _on_grayscale_toggled(self, checked: bool):
+        # Вариант А: линейная коррекция строго для ЧБ.
+        # Без «ЧБ» кнопка заблокирована, при выключении ЧБ
+        # включённая коррекция сбрасывается.
+        if not checked and self.linear_correction_button.isChecked():
+            self.linear_correction_button.setChecked(False)
+        self._apply_linear_lock(checked)
+
+    def _apply_linear_lock(self, grayscale_on: bool):
+        self.linear_correction_button.setEnabled(grayscale_on)
+        if grayscale_on:
+            self.linear_correction_button.setToolTip(
+                self._linear_locked_tooltip
+            )
+        else:
+            self.linear_correction_button.setToolTip(
+                self._linear_unlocked_tooltip
+            )

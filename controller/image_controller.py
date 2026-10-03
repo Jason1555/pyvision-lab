@@ -55,16 +55,17 @@ class ImageController(QObject):
 
             qimage = self.pil_to_qimage(image)
 
+            # Qt не смог создать изображение из загруженных данных.
             if qimage.isNull():
                 raise RuntimeError(
-                    "Qt could not create an image from the loaded data."
+                    "Не удалось создать изображение из загруженных данных."
                 )
 
             pixmap = QPixmap.fromImage(qimage)
 
             if pixmap.isNull():
                 raise RuntimeError(
-                    "Qt could not create a pixmap from the image."
+                    "Не удалось отобразить изображение."
                 )
 
             self.view.show_image(
@@ -87,7 +88,7 @@ class ImageController(QObject):
 
         except Exception as error:
             self.view.show_error(
-                f"Failed to open image:\n\n{error}"
+                f"Не удалось открыть изображение:\n\n{error}"
             )
 
     def save_image(self):
@@ -100,11 +101,11 @@ class ImageController(QObject):
             path = Path(file_name)
             default_name = str(
                 path.with_name(
-                    f"{path.stem}_edited{path.suffix}"
+                    f"{path.stem}_изм{path.suffix}"
                 )
             )
         else:
-            default_name = "edited_image.png"
+            default_name = "изменённое_изображение.png"
 
         file_path = self.view.ask_save_file(default_name)
 
@@ -113,10 +114,13 @@ class ImageController(QObject):
 
         try:
             self.model.save_processed_image(file_path)
-            self.view.show_info(f"Image saved:\n\n{file_path}")
+            self.view.show_info(f"Изображение сохранено:\n\n{file_path}")
 
         except Exception as error:
-            self.view.show_error(f"Failed to save image:\n\n{error}", title="Unable to save image")
+            self.view.show_error(
+                f"Не удалось сохранить изображение:\n\n{error}",
+                title="Не удалось сохранить изображение",
+            )
 
     def _refresh_image(self):
         image = self.model.process_image()
@@ -139,6 +143,10 @@ class ImageController(QObject):
 
     def convert_to_grayscale(self, enabled: bool):
         self.model.set_grayscale(enabled)
+        if not enabled:
+            # ЧБ выключили — сбрасываем и флаг линейной в модели,
+            # иначе process_image продолжит тянуть цветное фото.
+            self.model.set_linear_correction(False)
         self._refresh_image()
         self.histogram_changed.emit()
 
@@ -168,7 +176,7 @@ class ImageController(QObject):
     def rotate_left(self):
         self.rotation_timer.stop()
 
-        self.model.rotate_by(90)
+        self.model.rotate_by(-90)
         self._sync_rotation_dial()
         self._refresh_image()
         self.histogram_changed.emit()
@@ -176,12 +184,15 @@ class ImageController(QObject):
     def rotate_right(self):
         self.rotation_timer.stop()
 
-        self.model.rotate_by(-90)
+        self.model.rotate_by(90)
         self._sync_rotation_dial()
         self._refresh_image()
         self.histogram_changed.emit()
 
     def adjust_linear_correction(self, enabled: bool):
+        # Страховка: без ЧБ линейную не применяем даже напрямую.
+        if enabled and not self.model.image_settings.grayscale:
+            enabled = False
         self.model.set_linear_correction(enabled)
         self._refresh_image()
         self.histogram_changed.emit()
@@ -204,6 +215,32 @@ class ImageController(QObject):
 
     @staticmethod
     def pil_to_qimage(image: Image.Image) -> QImage:
+        # Быстрые пути без промежуточного RGBA:
+        # L -> Grayscale8 (1 байт/пиксель), RGB -> RGB888 (3 байта).
+        if image.mode == "L":
+            width, height = image.size
+            data = image.tobytes("raw", "L")
+            qimage = QImage(
+                data,
+                width,
+                height,
+                width,
+                QImage.Format.Format_Grayscale8,
+            )
+            return qimage.copy()
+
+        if image.mode == "RGB":
+            width, height = image.size
+            data = image.tobytes("raw", "RGB")
+            qimage = QImage(
+                data,
+                width,
+                height,
+                width * 3,
+                QImage.Format.Format_RGB888,
+            )
+            return qimage.copy()
+
         rgba_image = image.convert("RGBA")
 
         width = rgba_image.width

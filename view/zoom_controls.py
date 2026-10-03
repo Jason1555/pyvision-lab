@@ -39,5 +39,5 @@ class ZoomControls(QWidget):
         self.zoom_in_button.clicked.connect(self.zoom_in_clicked.emit)
         self.fit_button.clicked.connect(self.fit_clicked.emit)
 
-    def set_zoom(self, percent: int) -> None:
+    def set_zoom(self, percent: int):
         self.zoom_label.setText(f"{percent}%")

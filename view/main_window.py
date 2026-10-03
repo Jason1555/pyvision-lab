@@ -20,10 +20,10 @@ class MainWindow(QMainWindow):
 
         self.current_pixmap: QPixmap | None = None
 
-        self.open_button = QPushButton("Open image")
+        self.open_button = QPushButton("Открыть изображение")
         self.open_button.setObjectName("openButton")
 
-        self.save_button = QPushButton("Save image")
+        self.save_button = QPushButton("Сохранить изображение")
         self.save_button.setObjectName("saveButton")
         self.save_button.setEnabled(False)
 
@@ -90,15 +90,15 @@ class MainWindow(QMainWindow):
     def ask_open_file(self) -> str:
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Open image",
+            "Открыть изображение",
             "",
             (
-                "Images (*.jpg *.jpeg *.png *.bmp *.webp);;"
+                "Изображения (*.jpg *.jpeg *.png *.bmp *.webp);;"
                 "JPEG (*.jpg *.jpeg);;"
                 "PNG (*.png);;"
                 "BMP (*.bmp);;"
                 "WEBP (*.webp);;"
-                "All files (*)"
+                "Все файлы (*)"
             ),
         )
 
@@ -106,17 +106,17 @@ class MainWindow(QMainWindow):
 
     def ask_save_file(self, default_name: str = "") -> str:
         filters = (
-            "PNG Image (*.png);;"
-            "JPEG Image (*.jpg *.jpeg);;"
-            "WebP Image (*.webp);;"
-            "BMP Image (*.bmp);;"
-            "TIFF Image (*.tif *.tiff);;"
-            "All files (*.*)"
+            "PNG (*.png);;"
+            "JPEG (*.jpg *.jpeg);;"
+            "WebP (*.webp);;"
+            "BMP (*.bmp);;"
+            "TIFF (*.tif *.tiff);;"
+            "Все файлы (*.*)"
         )
 
         file_path, selected_filter = QFileDialog.getSaveFileName(
             self,
-            "Save image",
+            "Сохранить изображение",
             default_name,
             filters,
         )
@@ -126,6 +126,7 @@ class MainWindow(QMainWindow):
 
         path = Path(file_path)
 
+        # Сопоставляем выбранный фильтр с расширением.
         if selected_filter.startswith("PNG"):
             extension = ".png"
 
@@ -156,17 +157,17 @@ class MainWindow(QMainWindow):
 
     def show_image_info(self, file_name: str, width: int, height: int):
         self.setWindowTitle(
-            f"Vision Lab — {file_name} — {width} × {height}"
+            f"Vision Lab — {file_name} — {width} x {height}"
         )
 
-    def show_error(self, message: str, title: str = "Unable to open image") -> None:
+    def show_error(self, message: str, title: str = "Не удалось открыть изображение") -> None:
         QMessageBox.critical(
             self,
             title,
             message,
         )
 
-    def show_info(self, message: str, title: str = "Done") -> None:
+    def show_info(self, message: str, title: str = "Готово") -> None:
         QMessageBox.information(
             self,
             title,

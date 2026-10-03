@@ -7,7 +7,7 @@ class ImageInfoPanel(QFrame):
     def __init__(self):
         super().__init__()
 
-        self.title_label = QLabel("IMAGE INFO")
+        self.title_label = QLabel("ИНФОРМАЦИЯ ОБ ИЗОБРАЖЕНИИ")
         self.file_size_label = QLabel("—")
         self.resolution_label = QLabel("—")
         self.color_depth_label = QLabel("—")
@@ -21,12 +21,12 @@ class ImageInfoPanel(QFrame):
         form_layout = QFormLayout()
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        form_layout.addRow("Size:", self.file_size_label)
-        form_layout.addRow("Resolution:", self.resolution_label)
-        form_layout.addRow("Color depth:", self.color_depth_label)
-        form_layout.addRow("Format:", self.format_label)
-        form_layout.addRow("Color model:", self.color_model_label)
-        form_layout.addRow("Extra:", self.extra_label)
+        form_layout.addRow("Размер:", self.file_size_label)
+        form_layout.addRow("Разрешение:", self.resolution_label)
+        form_layout.addRow("Глубина цвета:", self.color_depth_label)
+        form_layout.addRow("Формат:", self.format_label)
+        form_layout.addRow("Цветовая модель:", self.color_model_label)
+        form_layout.addRow("Дополнительно:", self.extra_label)
 
         layout = QVBoxLayout()
         layout.addWidget(self.title_label)
@@ -43,9 +43,9 @@ class ImageInfoPanel(QFrame):
 
         width, height = resolution
 
-        self.resolution_label.setText(f"{width} x {height} px")
+        self.resolution_label.setText(f"{width} x {height} пкс")
 
-        self.color_depth_label.setText(f"{color_depth} bit/pixel")
+        self.color_depth_label.setText(f"{color_depth} бит/пиксель")
 
         self.format_label.setText(str(file_format))
 

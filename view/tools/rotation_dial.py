@@ -1,8 +1,8 @@
 from math import cos, radians, sin
 
-from PyQt6.QtCore import *
-from PyQt6.QtGui import *
-from PyQt6.QtWidgets import *
+from PyQt6.QtCore import Qt, QRectF, QPointF, pyqtSignal
+from PyQt6.QtGui import QBrush, QColor, QPainter, QPen
+from PyQt6.QtWidgets import QDial, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
 
 class RotationDialWidget(QDial):
     def __init__(self, parent=None):
@@ -315,6 +315,10 @@ class RotationDial(QWidget):
     def _on_dial_changed(self, value: int):
         self._update_input(value)
 
+        # Угол clockwise-положительный (вправо = плюс):
+        # совпадает с ручкой QDial и с ожиданиями пользователя.
+        # Инверсия под Pillow (там плюс = против часовой)
+        # делается в модели, в _apply_rotation.
         self.rotation_changed.emit(
             float(value)
         )

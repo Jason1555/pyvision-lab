@@ -545,3 +545,89 @@ QLabel#rotationDegreeLabel {
     font-family: "Consolas", "Cascadia Mono", monospace;
     font-size: 12px;
 }
+
+/* ---------- Histogram options ---------- */
+
+QCheckBox#histFillCheck {
+    color: #a1a5af;
+    font-size: 12px;
+    spacing: 4px;
+}
+
+QLabel#histStatsLabel {
+    color: #a1a5af;
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 11px;
+}
+
+/* ---------- EXIF dialog ---------- */
+
+QDialog#exifDialog {
+    background: #18191c;
+}
+
+QLabel#exifTitle {
+    color: #656976;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+QLabel#exifCount {
+    color: #d5d8df;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+QScrollArea#exifScroll {
+    background: #1f2024;
+    border: 1px solid #2a2c33;
+    border-radius: 6px;
+}
+
+QScrollArea#exifScroll QWidget#exifContent {
+    background: #1f2024;
+}
+
+QLabel#exifSection {
+    color: #3b82f6;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding-top: 10px;
+}
+
+QLabel#exifKey {
+    color: #8c919e;
+    font-size: 12px;
+    padding: 2px 0;
+}
+
+QLabel#exifValue {
+    color: #e2e4e9;
+    font-size: 12px;
+    background: #24262b;
+    border: 1px solid #2e3138;
+    border-radius: 4px;
+    padding: 3px 8px;
+}
+
+QLabel#exifValueKey {
+    color: #dbeafe;
+    font-size: 12px;
+    font-weight: 600;
+    background: #1e293b;
+    border: 1px solid #365a94;
+    border-radius: 4px;
+    padding: 3px 8px;
+}
+
+QLabel#exifEmpty {
+    color: #8c919e;
+    font-size: 13px;
+    padding: 30px 10px;
+}
+
+QPushButton#exifCopyButton {
+    min-width: 90px;
+}

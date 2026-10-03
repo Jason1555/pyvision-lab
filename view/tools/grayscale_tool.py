@@ -5,7 +5,7 @@ class GrayscaleTool(QPushButton):
     grayscale_clicked = pyqtSignal(bool)
 
     def __init__(self, parent=None):
-        super().__init__("Grayscale", parent)
+        super().__init__("ЧБ", parent)
 
         self.setObjectName("grayscaleTool")
         self.setCheckable(True)

@@ -7,7 +7,7 @@ class SaturationTool(AdjustmentTool):
 
     def __init__(self, parent=None):
         super().__init__(
-            "Saturation",
+            "Насыщенность",
             parent
         )
 
